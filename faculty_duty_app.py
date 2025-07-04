@@ -351,71 +351,74 @@ def generate_word_doc(df):
         # Add data rows for this date
         current_row = 1  # Start from row 1 (after header)
         serial_no = 1  # Reset serial number for each date's table
-        first_half_end_row = None  # Track where First Half ends
-        # First pass: Process all First Half rows
+        first_half_rows = []
+        second_half_rows = []
+        # Collect rows for each shift
         for idx, row in df_for_date.iterrows():
             if row["Shift"] == "First Half":
-                while current_row >= len(table.rows):
-                    table.add_row()
-                row_cells = table.rows[current_row].cells
-                row_cells[0].text = str(row["Shift"]) if current_row == 1 else ""
-                row_cells[1].text = str(serial_no)
-                row_cells[2].text = str(row["Faculty"])
-                row_cells[3].text = str(row.get("Phone No", ""))
-                row_cells[4].text = str(row.get("Email Id", ""))
-                for i, cell in enumerate(row_cells):
-                    # Set alignment: Faculty (2) and Email ID (4) left, others center
-                    if i in [2, 4]:
-                        cell.paragraphs[0].alignment = 0  # Left align
-                    else:
-                        cell.paragraphs[0].alignment = 1  # Center align
-                    for run in cell.paragraphs[0].runs:
-                        run.font.name = 'Times New Roman'
-                        run.font.size = Pt(11)
-                serial_no += 1
-                current_row += 1
-                first_half_end_row = current_row - 1
-        # Add blank row after First Half if Second Half exists
-        if first_half_end_row is not None and "Second Half" in df_for_date["Shift"].values:
+                first_half_rows.append(row)
+            elif row["Shift"] == "Second Half":
+                second_half_rows.append(row)
+        # Write First Half rows
+        for i, row in enumerate(first_half_rows):
+            while current_row >= len(table.rows):
+                table.add_row()
+            row_cells = table.rows[current_row].cells
+            row_cells[0].text = str(row["Shift"]) if i == 0 else ""
+            row_cells[1].text = str(serial_no)
+            row_cells[2].text = str(row["Faculty"])
+            row_cells[3].text = str(row.get("Phone No", ""))
+            row_cells[4].text = str(row.get("Email Id", ""))
+            for j, cell in enumerate(row_cells):
+                if j in [2, 4]:
+                    cell.paragraphs[0].alignment = 0  # Left align
+                else:
+                    cell.paragraphs[0].alignment = 1  # Center align
+                for run in cell.paragraphs[0].runs:
+                    run.font.name = 'Times New Roman'
+                    run.font.size = Pt(11)
+            serial_no += 1
+            current_row += 1
+        first_half_end_row = current_row - 1 if first_half_rows else None
+        # Add a single blank row if both shifts exist
+        if first_half_rows and second_half_rows:
             while current_row >= len(table.rows):
                 table.add_row()
             blank_cells = table.rows[current_row].cells
             for cell in blank_cells:
                 cell.text = ""
             current_row += 1
-        # Second pass: Process all Second Half rows
+        # Write Second Half rows
         serial_no = 1
         second_half_start_row = current_row
-        for idx, row in df_for_date.iterrows():
-            if row["Shift"] == "Second Half":
-                while current_row >= len(table.rows):
-                    table.add_row()
-                row_cells = table.rows[current_row].cells
-                row_cells[0].text = str(row["Shift"]) if current_row == second_half_start_row else ""
-                row_cells[1].text = str(serial_no)
-                row_cells[2].text = str(row["Faculty"])
-                row_cells[3].text = str(row.get("Phone No", ""))
-                row_cells[4].text = str(row.get("Email Id", ""))
-                for i, cell in enumerate(row_cells):
-                    # Set alignment: Faculty (2) and Email ID (4) left, others center
-                    if i in [2, 4]:
-                        cell.paragraphs[0].alignment = 0  # Left align
-                    else:
-                        cell.paragraphs[0].alignment = 1  # Center align
-                    for run in cell.paragraphs[0].runs:
-                        run.font.name = 'Times New Roman'
-                        run.font.size = Pt(11)
-                serial_no += 1
-                current_row += 1
+        for i, row in enumerate(second_half_rows):
+            while current_row >= len(table.rows):
+                table.add_row()
+            row_cells = table.rows[current_row].cells
+            row_cells[0].text = str(row["Shift"]) if i == 0 else ""
+            row_cells[1].text = str(serial_no)
+            row_cells[2].text = str(row["Faculty"])
+            row_cells[3].text = str(row.get("Phone No", ""))
+            row_cells[4].text = str(row.get("Email Id", ""))
+            for j, cell in enumerate(row_cells):
+                if j in [2, 4]:
+                    cell.paragraphs[0].alignment = 0  # Left align
+                else:
+                    cell.paragraphs[0].alignment = 1  # Center align
+                for run in cell.paragraphs[0].runs:
+                    run.font.name = 'Times New Roman'
+                    run.font.size = Pt(11)
+            serial_no += 1
+            current_row += 1
         # Merge cells for First Half
-        if first_half_end_row is not None:
+        if first_half_rows:
             try:
                 merged_cell = table.cell(1, 0).merge(table.cell(first_half_end_row, 0))
                 merged_cell.vertical_alignment = WD_ROW_HEIGHT_RULE.AT_LEAST
             except Exception as e:
                 print(f"Error merging First Half cells: {e}")
         # Merge cells for Second Half
-        if "Second Half" in df_for_date["Shift"].values:
+        if second_half_rows:
             try:
                 merged_cell = table.cell(second_half_start_row, 0).merge(table.cell(current_row - 1, 0))
                 merged_cell.vertical_alignment = WD_ROW_HEIGHT_RULE.AT_LEAST
