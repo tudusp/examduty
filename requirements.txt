@@ -1,5 +1,4 @@
 streamlit
-st-aggrid
 pandas
 openpyxl
 python-docx
