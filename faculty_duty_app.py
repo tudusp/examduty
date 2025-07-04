@@ -675,32 +675,35 @@ if section == "Faculty Management":
         faculty_list = [f for f in faculty_list if search_val in f.lower().replace(' ', '')]
     if not faculty_list:
         st.warning('No faculty found matching your search.')
-    for faculty in faculty_list:
-        st.markdown(f"**{faculty}**")
-        cols = st.columns(len(st.session_state.exam_schedule) * 2)
-        for i, date in enumerate(st.session_state.exam_schedule):
-            with cols[2*i]:
-                key_fh = f"unavail_{faculty}_fh_{date['date']}"
-                unavailable_fh = st.checkbox(
-                    f"{to_ddmmyyyy(date['date'])} First Half",
-                    value=date['date'] in st.session_state.faculty_unavailability[faculty]['first_half'],
-                    key=key_fh
-                )
-                if unavailable_fh:
-                    st.session_state.faculty_unavailability[faculty]['first_half'].add(date['date'])
-                else:
-                    st.session_state.faculty_unavailability[faculty]['first_half'].discard(date['date'])
-            with cols[2*i+1]:
-                key_sh = f"unavail_{faculty}_sh_{date['date']}"
-                unavailable_sh = st.checkbox(
-                    f"{to_ddmmyyyy(date['date'])} Second Half",
-                    value=date['date'] in st.session_state.faculty_unavailability[faculty]['second_half'],
-                    key=key_sh
-                )
-                if unavailable_sh:
-                    st.session_state.faculty_unavailability[faculty]['second_half'].add(date['date'])
-                else:
-                    st.session_state.faculty_unavailability[faculty]['second_half'].discard(date['date'])
+    if not st.session_state.exam_schedule:
+        st.warning("Please configure the exam schedule first!")
+    else:
+        for faculty in faculty_list:
+            st.markdown(f"**{faculty}**")
+            cols = st.columns(len(st.session_state.exam_schedule) * 2)
+            for i, date in enumerate(st.session_state.exam_schedule):
+                with cols[2*i]:
+                    key_fh = f"unavail_{faculty}_fh_{date['date']}"
+                    unavailable_fh = st.checkbox(
+                        f"{to_ddmmyyyy(date['date'])} First Half",
+                        value=date['date'] in st.session_state.faculty_unavailability[faculty]['first_half'],
+                        key=key_fh
+                    )
+                    if unavailable_fh:
+                        st.session_state.faculty_unavailability[faculty]['first_half'].add(date['date'])
+                    else:
+                        st.session_state.faculty_unavailability[faculty]['first_half'].discard(date['date'])
+                with cols[2*i+1]:
+                    key_sh = f"unavail_{faculty}_sh_{date['date']}"
+                    unavailable_sh = st.checkbox(
+                        f"{to_ddmmyyyy(date['date'])} Second Half",
+                        value=date['date'] in st.session_state.faculty_unavailability[faculty]['second_half'],
+                        key=key_sh
+                    )
+                    if unavailable_sh:
+                        st.session_state.faculty_unavailability[faculty]['second_half'].add(date['date'])
+                    else:
+                        st.session_state.faculty_unavailability[faculty]['second_half'].discard(date['date'])
 
 # --- Exam Schedule ---
 elif section == "Exam Schedule":
