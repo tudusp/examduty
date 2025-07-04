@@ -1464,6 +1464,18 @@ elif section == "Reports & Downloads":
             # Save back to Excel
             mdf.to_excel(masterload_path, index=False, engine="openpyxl")
             st.success(f"Record kept in '{masterload_path}' with column '{exam_col}'.")
+
+        # Always show download button if file exists
+        import io
+        if os.path.exists("MasterLoad.xlsx"):
+            with open("MasterLoad.xlsx", "rb") as f:
+                masterload_bytes = f.read()
+            st.download_button(
+                label="📥 Download MasterLoad.xlsx",
+                data=masterload_bytes,
+                file_name="MasterLoad.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
     else:
         st.info("No assignments available to download.")
 
