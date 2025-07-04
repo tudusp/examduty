@@ -283,6 +283,7 @@ def generate_word_doc(df):
     run_header = p2.add_run(header)
     run_header.font.name = 'Times New Roman'
     run_header.font.size = Pt(14)
+    run_header.bold = True  # Make header bold
     p2.alignment = 1  # Center align (optional)
     # Add underline to header
     run_header.font.underline = True
@@ -310,7 +311,9 @@ def generate_word_doc(df):
         # Add date display before the table as bold paragraph
         doc.add_paragraph()  # Add some space before the date display
         date_para = doc.add_paragraph()
-        date_run = date_para.add_run(date.strftime("%d-%m-%Y"))
+        day_str = date.strftime('%A')
+        date_str = date.strftime('%d.%m.%Y')
+        date_run = date_para.add_run(f"{date_str} ({day_str})")
         date_run.bold = True
         date_run.font.name = 'Times New Roman'
         date_run.font.size = Pt(12)
@@ -329,6 +332,7 @@ def generate_word_doc(df):
         table.columns[0].width = Mm(25)  # Shift column
         table.columns[1].width = Mm(15.1)  # S.No column (1.51 cm = 15.1 mm)
         table.columns[2].width = Mm(60)  # Faculty column
+        table.columns[4].width = Mm(40)  # Email ID column
         table.columns[3].width = Mm(30)  # Phone No column
         table.columns[4].width = Mm(40)  # Email ID column
         # Add header row
@@ -337,8 +341,8 @@ def generate_word_doc(df):
         for i, header in enumerate(headers):
             cell = hdr_cells[i]
             cell.text = header
-            # Center align the text horizontally
-            cell.paragraphs[0].alignment = 1
+            # Set all header cells center aligned
+            cell.paragraphs[0].alignment = 1  # Center align
             # Make text bold
             for run in cell.paragraphs[0].runs:
                 run.bold = True
@@ -359,8 +363,12 @@ def generate_word_doc(df):
                 row_cells[2].text = str(row["Faculty"])
                 row_cells[3].text = str(row.get("Phone No", ""))
                 row_cells[4].text = str(row.get("Email Id", ""))
-                for cell in row_cells:
-                    cell.paragraphs[0].alignment = 1
+                for i, cell in enumerate(row_cells):
+                    # Set alignment: Faculty (2) and Email ID (4) left, others center
+                    if i in [2, 4]:
+                        cell.paragraphs[0].alignment = 0  # Left align
+                    else:
+                        cell.paragraphs[0].alignment = 1  # Center align
                     for run in cell.paragraphs[0].runs:
                         run.font.name = 'Times New Roman'
                         run.font.size = Pt(11)
@@ -388,8 +396,12 @@ def generate_word_doc(df):
                 row_cells[2].text = str(row["Faculty"])
                 row_cells[3].text = str(row.get("Phone No", ""))
                 row_cells[4].text = str(row.get("Email Id", ""))
-                for cell in row_cells:
-                    cell.paragraphs[0].alignment = 1
+                for i, cell in enumerate(row_cells):
+                    # Set alignment: Faculty (2) and Email ID (4) left, others center
+                    if i in [2, 4]:
+                        cell.paragraphs[0].alignment = 0  # Left align
+                    else:
+                        cell.paragraphs[0].alignment = 1  # Center align
                     for run in cell.paragraphs[0].runs:
                         run.font.name = 'Times New Roman'
                         run.font.size = Pt(11)
@@ -420,8 +432,19 @@ def generate_word_doc(df):
     ]
     for i, note in enumerate(notes, 1):
         p = doc.add_paragraph()
-        p.add_run(f"{i}.      ").bold = True
-        p.add_run(note)
+        p.paragraph_format.left_indent = Pt(0)
+        p.paragraph_format.first_line_indent = Pt(0)
+        p.paragraph_format.tab_stops.add_tab_stop(Pt(36))  # Hanging indent at 0.5 inch
+        run = p.add_run(f"{i}.\t")
+        run.bold = True
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(12)
+        run2 = p.add_run(note)
+        run2.font.name = 'Times New Roman'
+        run2.font.size = Pt(12)
+        # Hanging indent effect
+        p.paragraph_format.first_line_indent = -Pt(18)
+        p.paragraph_format.left_indent = Pt(36)
     # Add signature section
     doc.add_paragraph("\n\n")
     signature = doc.add_paragraph()
